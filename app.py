@@ -1,5 +1,4 @@
 import streamlit as st
-import base64
 from formatter import extract_text_from_bytes, call_llm, generate_docx_bytes, generate_html_preview, docx_bytes_to_pdf_bytes, count_pdf_pages
 
 st.set_page_config(page_title="Resume Formatter", page_icon="📄", layout="wide")
@@ -98,13 +97,5 @@ if "result_data" in st.session_state:
             for w in warnings:
                 st.warning(w)
 
-    pdf_bytes = st.session_state.get("pdf_bytes")
-    if pdf_bytes:
-        b64 = base64.b64encode(pdf_bytes).decode()
-        st.markdown(
-            f'<iframe src="data:application/pdf;base64,{b64}" width="100%" height="900" style="border: 1px solid #ddd; border-radius: 4px;"></iframe>',
-            unsafe_allow_html=True,
-        )
-    else:
-        html = generate_html_preview(data)
-        st.markdown(html, unsafe_allow_html=True)
+    html = generate_html_preview(data)
+    st.markdown(html, unsafe_allow_html=True)
