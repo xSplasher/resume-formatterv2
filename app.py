@@ -34,7 +34,7 @@ if uploaded is not None and not st.session_state.get("processing", False):
             st.error("Could not extract any text from this file.")
             st.stop()
 
-        placeholder.info(f"Extracted {len(text)} characters. AI is analyzing the resume... this may take up to 60 seconds.")
+        placeholder.info(f"Extracted {len(text)} characters. AI is analyzing the resume... this may take a couple of minutes.")
 
         try:
             data = call_llm(text, API_KEY, compact=compact)
