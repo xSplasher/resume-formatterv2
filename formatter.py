@@ -164,7 +164,7 @@ def _convert_doc_to_docx(path: Path) -> Path:
     cmd = _get_libreoffice_cmd()
     outdir = path.parent
     subprocess.run(
-        [cmd, "--headless", "--convert-to", "docx", "--outdir", str(outdir), str(path)],
+        [cmd, "--headless", "--norestore", "--convert-to", "docx", "--outdir", str(outdir), str(path)],
         check=True,
         capture_output=True,
     )
@@ -385,7 +385,7 @@ def docx_bytes_to_pdf_bytes(docx_bytes: bytes) -> bytes:
         docx_path = Path(tmpdir) / "resume.docx"
         docx_path.write_bytes(docx_bytes)
         subprocess.run(
-            [cmd, "--headless", "--convert-to", "pdf", "--outdir", tmpdir, str(docx_path)],
+            [cmd, "--headless", "--norestore", "--convert-to", "pdf", "--outdir", tmpdir, str(docx_path)],
             check=True,
             capture_output=True,
         )

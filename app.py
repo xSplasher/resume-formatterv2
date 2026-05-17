@@ -15,7 +15,9 @@ if uploaded is not None:
     file_bytes = uploaded.read()
     filename = uploaded.name
 
-    if st.button("Format Resume", type="primary"):
+    is_processing = st.session_state.get("processing", False)
+    if st.button("Format Resume", type="primary", disabled=is_processing):
+        st.session_state.processing = True
         with st.spinner("Extracting text..."):
             try:
                 text = extract_text_from_bytes(file_bytes, filename)
@@ -51,6 +53,7 @@ if uploaded is not None:
                 st.session_state.pdf_bytes = None
                 st.session_state.page_count = None
 
+        st.session_state.processing = False
         st.success("Done!")
         st.rerun()
 
