@@ -63,7 +63,7 @@ if uploaded is not None and not st.session_state.get("processing", False):
         st.rerun()
 
 elif st.session_state.get("processing", False):
-    st.warning("Processing in progress... please wait.")
+    st.info("⏳ Processing resume... this may take a couple of minutes. Please don't close this page.")
 
 if "result_data" in st.session_state:
     data = st.session_state.result_data
