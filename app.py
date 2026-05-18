@@ -11,59 +11,51 @@ st.markdown("Upload a resume and get a professionally formatted version in secon
 uploaded = st.file_uploader("Upload a resume", type=["pdf", "docx", "doc"])
 compact = st.checkbox("Compact mode", help="Shorten and tighten the resume to fit on one page. Content may be condensed.")
 
-if uploaded is not None and not st.session_state.get("processing", False):
+if uploaded is not None:
     file_bytes = uploaded.read()
     filename = uploaded.name
 
     if st.button("Format Resume", type="primary"):
-        st.session_state.processing = True
         st.session_state.pop("result_data", None)
 
-        placeholder = st.empty()
-        placeholder.info("Extracting text...")
+        with st.status("Formatting resume...", expanded=True) as status:
+            st.write("Extracting text...")
+            try:
+                text = extract_text_from_bytes(file_bytes, filename)
+            except Exception as e:
+                st.error(f"Failed to extract text: {e}")
+                st.stop()
 
-        try:
-            text = extract_text_from_bytes(file_bytes, filename)
-        except Exception as e:
-            st.session_state.processing = False
-            st.error(f"Failed to extract text: {e}")
-            st.stop()
+            if not text.strip():
+                st.error("Could not extract any text from this file.")
+                st.stop()
 
-        if not text.strip():
-            st.session_state.processing = False
-            st.error("Could not extract any text from this file.")
-            st.stop()
+            st.write(f"Extracted {len(text)} characters.")
+            st.write("AI is analyzing the resume... this may take a couple of minutes.")
 
-        placeholder.info(f"Extracted {len(text)} characters. AI is analyzing the resume... this may take a couple of minutes.")
+            try:
+                data = call_llm(text, API_KEY, compact=compact)
+            except Exception as e:
+                st.error(f"AI processing failed: {e}")
+                st.stop()
 
-        try:
-            data = call_llm(text, API_KEY, compact=compact)
-        except Exception as e:
-            st.session_state.processing = False
-            st.error(f"AI processing failed: {e}")
-            st.stop()
+            st.write("Generating documents...")
 
-        st.session_state.result_data = data
-        st.session_state.result_filename = filename
+            st.session_state.result_data = data
+            st.session_state.result_filename = filename
 
-        docx_bytes = generate_docx_bytes(data)
-        st.session_state.docx_bytes = docx_bytes
+            docx_bytes = generate_docx_bytes(data)
+            st.session_state.docx_bytes = docx_bytes
 
-        placeholder.info("Generating PDF...")
-        try:
-            pdf_bytes = docx_bytes_to_pdf_bytes(docx_bytes)
-            st.session_state.pdf_bytes = pdf_bytes
-            st.session_state.page_count = count_pdf_pages(pdf_bytes)
-        except Exception:
-            st.session_state.pdf_bytes = None
-            st.session_state.page_count = None
+            try:
+                pdf_bytes = docx_bytes_to_pdf_bytes(docx_bytes)
+                st.session_state.pdf_bytes = pdf_bytes
+                st.session_state.page_count = count_pdf_pages(pdf_bytes)
+            except Exception:
+                st.session_state.pdf_bytes = None
+                st.session_state.page_count = None
 
-        st.session_state.processing = False
-        placeholder.empty()
-        st.rerun()
-
-elif st.session_state.get("processing", False):
-    st.info("⏳ Processing resume... this may take a couple of minutes. Please don't close this page.")
+            status.update(label="Done!", state="complete", expanded=False)
 
 if "result_data" in st.session_state:
     data = st.session_state.result_data
